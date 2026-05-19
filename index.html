@@ -1,5 +1,5 @@
 
-<h2 class="sr-only">Favix customer data collection form for Eid Panjabi Sales Test Going 1</h2>
+<h2 class="sr-only">Favix customer data collection form for Eid Panjabi Sales Test Going 2</h2>
 
 <style>
 :root {
@@ -77,6 +77,24 @@ body::before {
   font-size: 0.95rem;
   color: var(--color-text-secondary);
   margin-top: 3px;
+}
+.firebase-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f766e;
+  background: rgba(15, 118, 110, 0.12);
+  border: 1px solid rgba(15, 118, 110, 0.18);
+}
+.firebase-status.offline {
+  color: #7c2d12;
+  background: rgba(254, 215, 170, 0.18);
+  border-color: rgba(251, 146, 60, 0.24);
 }
 .section {
   margin-bottom: 1.75rem;
@@ -399,6 +417,7 @@ body::before {
     <div class="brand-text">
       <h1>Favix — customer profile</h1>
       <p>Eid collection · Panjabi 2026</p>
+      <div id="firebase-status" class="firebase-status offline">Cloud save: connecting...</div>
     </div>
   </div>
 
@@ -573,8 +592,13 @@ import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "http
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
 
 document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    chip.classList.toggle('selected');
+  const input = chip.querySelector('input[type=checkbox]');
+  chip.addEventListener('click', event => {
+    event.preventDefault();
+    const selected = chip.classList.toggle('selected');
+    if (input) {
+      input.checked = selected;
+    }
   });
 });
 
@@ -647,9 +671,17 @@ const firebaseConfig = {
   measurementId: "G-CP4605J46B"
 };
 
+function setFirebaseStatus(isActive, message) {
+  const badge = document.getElementById('firebase-status');
+  if (!badge) return;
+  badge.textContent = message;
+  badge.classList.toggle('offline', !isActive);
+}
+
 function initFirebase() {
   try {
     if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'YOUR_API_KEY') {
+      setFirebaseStatus(false, 'Cloud save: disabled');
       showToast('Firebase not configured — using local storage.');
       return;
     }
@@ -657,9 +689,11 @@ function initFirebase() {
     getAnalytics(app);
     db = getFirestore(app);
     firebaseEnabled = true;
+    setFirebaseStatus(true, 'Cloud save: enabled');
     showToast('Firebase initialized — cloud save enabled.');
   } catch (e) {
     console.error('Firebase init error', e);
+    setFirebaseStatus(false, 'Cloud save: disabled');
     showToast('Firebase init failed — using local storage.');
   }
 }
