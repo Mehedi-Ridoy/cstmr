@@ -567,7 +567,11 @@ body::before {
 
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
+
 document.querySelectorAll('.chip').forEach(chip => {
   chip.addEventListener('click', () => {
     chip.classList.toggle('selected');
@@ -610,7 +614,7 @@ function getStoredEntries() {
   }
 }
 
-function saveEntry(entry) {
+function saveEntryLocal(entry) {
   const entries = getStoredEntries();
   entries.push(entry);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
@@ -628,8 +632,73 @@ function showToast(message) {
   toast.hideTimeout = setTimeout(() => toast.classList.remove('show'), 4200);
 }
 
-function exportStoredEntriesAsCsv() {
-  const entries = getStoredEntries();
+// --- Firebase integration ---
+let firebaseEnabled = false;
+let db = null;
+
+// Firebase project config (provided)
+const firebaseConfig = {
+  apiKey: "AIzaSyDqKQwx7Oy3odQ-FHsrO-xv75YWbnTd50Q",
+  authDomain: "favix-customer-data.firebaseapp.com",
+  projectId: "favix-customer-data",
+  storageBucket: "favix-customer-data.firebasestorage.app",
+  messagingSenderId: "347359011001",
+  appId: "1:347359011001:web:4cc56a4a11003c5b66bb68",
+  measurementId: "G-CP4605J46B"
+};
+
+function initFirebase() {
+  try {
+    if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'YOUR_API_KEY') {
+      showToast('Firebase not configured — using local storage.');
+      return;
+    }
+    const app = initializeApp(firebaseConfig);
+    getAnalytics(app);
+    db = getFirestore(app);
+    firebaseEnabled = true;
+    showToast('Firebase initialized — cloud save enabled.');
+  } catch (e) {
+    console.error('Firebase init error', e);
+    showToast('Firebase init failed — using local storage.');
+  }
+}
+
+initFirebase();
+
+async function saveEntryToFirestore(entry) {
+  try {
+    await addDoc(collection(db, 'favixCustomers'), { ...entry, timestamp: serverTimestamp() });
+    showToast('Customer saved to Firebase.');
+  } catch (e) {
+    console.error('Firestore save error', e);
+    showToast('Failed saving to Firebase — saved locally.');
+    saveEntryLocal(entry);
+  }
+}
+
+async function exportStoredEntriesAsCsv() {
+  let entries = [];
+  if (firebaseEnabled && db) {
+    try {
+      const snap = await getDocs(collection(db, 'favixCustomers'));
+      entries = snap.docs.map(d => {
+        const data = d.data();
+        // If Firestore timestamp object exists, convert to readable string
+        if (data.timestamp && typeof data.timestamp.toDate === 'function') {
+          data.timestamp = data.timestamp.toDate().toLocaleString('en-BD');
+        }
+        return data;
+      });
+    } catch (e) {
+      console.error('Fetch from Firestore failed', e);
+      showToast('Failed fetching from Firebase — falling back to local data.');
+      entries = getStoredEntries();
+    }
+  } else {
+    entries = getStoredEntries();
+  }
+
   if (!entries.length) {
     showToast('No saved customer records yet. Save one first.');
     return;
@@ -642,27 +711,30 @@ function exportStoredEntriesAsCsv() {
     'First-time customer', 'Satisfaction rating', 'Values', 'Comments', 'Timestamp'
   ];
 
-  const rows = entries.map(entry => [
-    entry.name,
-    entry.phone,
-    entry.email,
-    entry.age,
-    entry.location,
-    entry.occupation,
-    entry.style_pref,
-    entry.fabric_pref,
-    entry.color_pref,
-    entry.size,
-    entry.budget,
-    entry.purchase_frequency,
-    entry.channel,
-    entry.source,
-    entry.first_time,
-    entry.satisfaction_rating,
-    entry.values,
-    entry.comments,
-    entry.timestamp
-  ].map(formatCsvValue).join(','));
+  const rows = entries.map(entry => {
+    const ts = entry.timestamp || '';
+    return [
+      entry.name,
+      entry.phone,
+      entry.email,
+      entry.age,
+      entry.location,
+      entry.occupation,
+      entry.style_pref,
+      entry.fabric_pref,
+      entry.color_pref,
+      entry.size,
+      entry.budget,
+      entry.purchase_frequency,
+      entry.channel,
+      entry.source,
+      entry.first_time,
+      entry.satisfaction_rating,
+      entry.values,
+      entry.comments,
+      ts
+    ].map(formatCsvValue).join(',');
+  });
 
   const csv = [headers.map(formatCsvValue).join(','), ...rows].join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -677,7 +749,7 @@ function exportStoredEntriesAsCsv() {
   showToast('Export started: all saved customer data.');
 }
 
-function submitForm() {
+async function submitForm() {
   if (!document.getElementById('consent').checked) {
     alert('Please accept the data consent to continue.');
     return;
@@ -707,7 +779,13 @@ function submitForm() {
     timestamp: new Date().toLocaleString('en-BD')
   };
 
-  saveEntry(entry);
+  if (firebaseEnabled && db) {
+    await saveEntryToFirestore(entry);
+  } else {
+    saveEntryLocal(entry);
+    showToast('Saved locally. Configure Firebase to enable cloud save.');
+  }
+
   console.log('Favix customer entry:', JSON.stringify(entry, null, 2));
 
   const banner = document.getElementById('success-banner');
@@ -728,4 +806,9 @@ function resetForm() {
 function sendPrompt(promptText) {
   exportStoredEntriesAsCsv();
 }
+
+window.submitForm = submitForm;
+window.resetForm = resetForm;
+window.exportStoredEntriesAsCsv = exportStoredEntriesAsCsv;
+window.sendPrompt = sendPrompt;
 </script>
