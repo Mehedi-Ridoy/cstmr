@@ -1,19 +1,19 @@
 
-<h2 class="sr-only">Favix customer data collection form for Eid Panjabi Sales Test Going 2</h2>
+<h2 class="brand-title">Favix customer data collection form for Eid Panjabi Sales Testing 1</h2>
 
 <style>
 :root {
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --color-background: #eef8ff;
-  --color-surface: rgba(255,255,255,0.98);
+  --color-background: #ffffff;
+  --color-surface: rgba(255,255,255,0.96);
   --color-surface-strong: #ffffff;
-  --color-border: rgba(14, 165, 233, 0.16);
-  --color-border-strong: rgba(14, 165, 233, 0.24);
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #334155;
-  --color-text-muted: #475569;
-  --color-accent: #0ea5e9;
-  --color-accent-soft: #d0f2ff;
+  --color-border: rgba(212, 175, 55, 0.18);
+  --color-border-strong: rgba(212, 175, 55, 0.28);
+  --color-text-primary: #1f1b10;
+  --color-text-secondary: #5f5130;
+  --color-text-muted: #7a6a4f;
+  --color-accent: #d4af37;
+  --color-accent-soft: rgba(212, 175, 55, 0.18);
   --color-success: #0f766e;
   --color-background-success: #ecfdf5;
   --color-border-success: #a7f3d0;
@@ -23,7 +23,7 @@
 html { scroll-behavior: smooth; width: 100%; min-height: 100%; }
 body {
   font-family: var(--font-sans);
-  background: radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 22%), linear-gradient(180deg, #f8fbff 0%, #eef8ff 100%);
+  background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.16), transparent 22%), linear-gradient(180deg, #ffffff 0%, #fbf4df 100%);
   color: var(--color-text-primary);
   min-height: 100vh;
   padding: 1.1rem 0 1.5rem;
@@ -61,6 +61,11 @@ body::before {
   display: grid;
   place-items: center;
 }
+.brand-header {
+  background: rgba(212, 175, 55, 0.06);
+  border-radius: 28px;
+  padding: 1.25rem 1.25rem 1.4rem;
+}
 .brand-logo span {
   color: #fff;
   font-size: 13px;
@@ -77,6 +82,13 @@ body::before {
   font-size: 0.95rem;
   color: var(--color-text-secondary);
   margin-top: 3px;
+}
+.brand-title {
+  text-align: center;
+  color: #8b6d14;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 1.2rem auto 0;
 }
 .firebase-status {
   display: inline-flex;
@@ -95,6 +107,12 @@ body::before {
   color: #7c2d12;
   background: rgba(254, 215, 170, 0.18);
   border-color: rgba(251, 146, 60, 0.24);
+}
+.entry-count {
+  margin-top: 0.65rem;
+  font-size: 0.92rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
 }
 .section {
   margin-bottom: 1.75rem;
@@ -188,7 +206,7 @@ body::before {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.18);
+  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.18);
 }
 .chip i {
   font-size: 1rem;
@@ -239,7 +257,7 @@ body::before {
   padding: 14px 24px;
   font-size: 0.98rem;
   font-weight: 600;
-  box-shadow: 0 14px 28px rgba(14, 165, 233, 0.2);
+  box-shadow: 0 14px 28px rgba(212, 175, 55, 0.2);
 }
 .btn-submit:hover {
   opacity: 0.94;
@@ -418,15 +436,16 @@ body::before {
       <h1>Favix — customer profile</h1>
       <p>Eid collection · Panjabi 2026</p>
       <div id="firebase-status" class="firebase-status offline">Cloud save: connecting...</div>
+      <div id="entry-count" class="entry-count">Next entry: #1</div>
     </div>
   </div>
 
   <div class="section">
     <p class="section-label">Personal details</p>
     <div class="grid-2">
-      <div class="field"><label>Full name</label><input type="text" id="name" placeholder="Md. Rakib Hossain" /></div>
+      <div class="field"><label>Full name</label><input type="text" id="name" placeholder="type your name here..." /></div>
       <div class="field"><label>Phone number</label><input type="tel" id="phone" placeholder="017XXXXXXXX" /></div>
-      <div class="field"><label>Email (optional)</label><input type="email" id="email" placeholder="rakib@email.com" /></div>
+      <div class="field"><label>Email (optional)</label><input type="email" id="email" placeholder="youremail@email.com" /></div>
       <div class="field"><label>Age range</label>
         <select id="age">
           <option value="">Select…</option>
@@ -508,6 +527,9 @@ body::before {
           <option>Monthly</option><option>Rarely</option>
         </select>
       </div>
+      <div class="field"><label>Quantity</label><input type="number" id="quantity" min="1" step="1" placeholder="1" /></div>
+      <div class="field"><label>Price (BDT)</label><input type="number" id="price" min="0" step="0.01" placeholder="1500" /></div>
+      <div class="field"><label>Discount price (BDT)</label><input type="number" id="discount" min="0" step="0.01" placeholder="1200" /></div>
       <div class="field"><label>Preferred purchase channel</label>
         <select id="channel">
           <option value="">Select…</option>
@@ -678,6 +700,25 @@ function setFirebaseStatus(isActive, message) {
   badge.classList.toggle('offline', !isActive);
 }
 
+function updateEntryCountDisplay(count) {
+  const counter = document.getElementById('entry-count');
+  if (!counter) return;
+  counter.textContent = `Next entry: #${count + 1}`;
+}
+
+async function updateEntryCount() {
+  let count = getStoredEntries().length;
+  if (firebaseEnabled && db) {
+    try {
+      const snap = await getDocs(collection(db, 'favixCustomers'));
+      count = snap.size;
+    } catch (e) {
+      console.warn('Unable to fetch Firestore count, using local count', e);
+    }
+  }
+  updateEntryCountDisplay(count);
+}
+
 function initFirebase() {
   try {
     if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'YOUR_API_KEY') {
@@ -691,14 +732,17 @@ function initFirebase() {
     firebaseEnabled = true;
     setFirebaseStatus(true, 'Cloud save: enabled');
     showToast('Firebase initialized — cloud save enabled.');
+    updateEntryCount();
   } catch (e) {
     console.error('Firebase init error', e);
     setFirebaseStatus(false, 'Cloud save: disabled');
     showToast('Firebase init failed — using local storage.');
+    updateEntryCount();
   }
 }
 
 initFirebase();
+updateEntryCount();
 
 async function saveEntryToFirestore(entry) {
   try {
@@ -741,8 +785,9 @@ async function exportStoredEntriesAsCsv() {
   const headers = [
     'Name', 'Phone', 'Email', 'Age range', 'Location', 'Occupation',
     'Style preferences', 'Fabric preferences', 'Color preferences', 'Size',
-    'Budget range', 'Purchase frequency', 'Purchase channel', 'Source',
-    'First-time customer', 'Satisfaction rating', 'Values', 'Comments', 'Timestamp'
+    'Budget range', 'Quantity', 'Price', 'Discount price', 'Purchase frequency',
+    'Purchase channel', 'Source', 'First-time customer', 'Satisfaction rating',
+    'Values', 'Comments', 'Timestamp'
   ];
 
   const rows = entries.map(entry => {
@@ -759,6 +804,9 @@ async function exportStoredEntriesAsCsv() {
       entry.color_pref,
       entry.size,
       entry.budget,
+      entry.quantity,
+      entry.price,
+      entry.discount_price,
       entry.purchase_frequency,
       entry.channel,
       entry.source,
@@ -807,6 +855,9 @@ async function submitForm() {
     channel: document.getElementById('channel').value,
     source: document.getElementById('source').value,
     first_time: document.getElementById('firsttime').value,
+    quantity: parseInt(document.getElementById('quantity').value, 10) || '',
+    price: parseFloat(document.getElementById('price').value) || '',
+    discount_price: parseFloat(document.getElementById('discount').value) || '',
     satisfaction_rating: rating,
     values: getChips('value-chips'),
     comments: document.getElementById('comments').value,
@@ -821,6 +872,7 @@ async function submitForm() {
   }
 
   console.log('Favix customer entry:', JSON.stringify(entry, null, 2));
+  updateEntryCount();
 
   const banner = document.getElementById('success-banner');
   banner.style.display = 'flex';
@@ -829,7 +881,7 @@ async function submitForm() {
 
 function resetForm() {
   ['name','phone','email','location','comments'].forEach(id => document.getElementById(id).value = '');
-  ['age','occupation','size','budget','frequency','channel','source','firsttime'].forEach(id => document.getElementById(id).value = '');
+  ['age','occupation','size','budget','frequency','channel','source','firsttime','quantity','price','discount'].forEach(id => document.getElementById(id).value = '');
   document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
   rating = 0;
   stars.forEach(s => s.classList.remove('lit'));
